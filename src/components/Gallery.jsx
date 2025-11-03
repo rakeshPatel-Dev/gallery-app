@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const Gallery = ({ photos }) => {
-    const [selectedIndex, setSelectedIndex] = useState(null);
-
+const Gallery = ({ photos, selectedIndex, setSelectedIndex }) => {
     // Keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -12,6 +10,7 @@ const Gallery = ({ photos }) => {
             if (e.key === "ArrowRight") nextImage();
             if (e.key === "ArrowLeft") prevImage();
         };
+
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
     });
@@ -24,12 +23,6 @@ const Gallery = ({ photos }) => {
     const prevImage = () => {
         if (selectedIndex === null) return;
         setSelectedIndex((prev) => (prev - 1 + photos.length) % photos.length);
-    };
-
-    // Swipe drag handlers
-    const handleDragEnd = (event, info) => {
-        if (info.offset.x < -50) nextImage();
-        if (info.offset.x > 50) prevImage();
     };
 
     return (
@@ -53,7 +46,7 @@ const Gallery = ({ photos }) => {
 
                     {/* Download icon (on hover) */}
                     <a
-                        href={photo.links.download}
+                        href={`${photo.links.download}?force=true`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 text-gray-900 rounded-full p-2 hover:bg-white"
@@ -75,38 +68,35 @@ const Gallery = ({ photos }) => {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25 }}
                     >
-                        {/* Overlay buttons fixed */}
-                        <div className="absolute inset-0 flex justify-between items-center px-4">
-                            <button
-                                onClick={prevImage}
-                                className="text-white hover:text-gray-300 p-2"
-                            >
-                                <ChevronLeft size={40} />
-                            </button>
-                            <button
-                                onClick={nextImage}
-                                className="text-white hover:text-gray-300 p-2"
-                            >
-                                <ChevronRight size={40} />
-                            </button>
-                        </div>
-
                         {/* Close button */}
                         <button
                             onClick={() => setSelectedIndex(null)}
-                            className="absolute top-4 right-4 text-white hover:text-gray-300 p-2"
+                            className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 z-50"
                         >
                             <X size={28} />
                         </button>
 
-                        {/* Swipeable Image */}
+                        {/* Prev button */}
+                        <button
+                            onClick={prevImage}
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 p-2 z-50"
+                        >
+                            <ChevronLeft size={40} />
+                        </button>
+
+                        {/* Next button */}
+                        <button
+                            onClick={nextImage}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 p-2 z-50"
+                        >
+                            <ChevronRight size={40} />
+                        </button>
+
+                        {/* Animated Image */}
                         <motion.img
                             key={photos[selectedIndex].id}
                             src={photos[selectedIndex].urls.regular}
                             alt="Full view"
-                            drag="x"
-                            dragConstraints={{ left: 0, right: 0 }}
-                            onDragEnd={handleDragEnd}
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.8, opacity: 0 }}
@@ -114,13 +104,9 @@ const Gallery = ({ photos }) => {
                             className="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-lg"
                         />
 
-                        {/* Info + Download */}
-                        <motion.div
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            className="absolute bottom-6 flex flex-col items-center gap-2 text-center text-white"
-                        >
-                            <p className="text-lg font-semibold">
+                        {/* Info + Download fixed overlay */}
+                        <div className="absolute bottom-8 flex flex-col items-center gap-2 text-center z-50">
+                            <p className="text-lg font-semibold text-white">
                                 {photos[selectedIndex].user?.name}
                             </p>
                             <a
@@ -139,7 +125,7 @@ const Gallery = ({ photos }) => {
                             >
                                 <Download size={18} /> Download
                             </a>
-                        </motion.div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
