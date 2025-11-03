@@ -8,6 +8,7 @@ const App = () => {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   const UNSPLASH_KEY = import.meta.env.VITE_UNSPLASH_KEY;
   const PER_PAGE = 30;
@@ -24,10 +25,10 @@ const App = () => {
 
       if (search) {
         setPhotos(data.results);
-        setTotalPages(data.total_pages > 1000 ? 1000 : data.total_pages); // limit pages
+        setTotalPages(data.total_pages > 1000 ? 1000 : data.total_pages);
       } else {
         setPhotos(data);
-        setTotalPages(100); // Unsplash default max
+        setTotalPages(100);
       }
     } catch (err) {
       console.error("Error fetching photos:", err);
@@ -53,7 +54,7 @@ const App = () => {
 
   return (
     <div
-      className={`${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+      className={`${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
         } min-h-screen transition-colors duration-300`}
     >
       <Navbar
@@ -64,30 +65,37 @@ const App = () => {
         setQuery={setQuery}
         fetchPhotos={fetchPhotos}
       />
-      <Gallery photos={photos} />
 
-      {/* Pagination */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-white/80 dark:bg-gray-700/50 rounded-full py-3 px-4 shadow-lg z-50 backdrop-blur-2xl">
-        {Array.from({ length: Math.min(7, totalPages) }).map((_, idx) => {
-          let pageNo = 1;
-          if (page <= 4) pageNo = idx + 1;
-          else if (page >= totalPages - 3) pageNo = totalPages - 6 + idx;
-          else pageNo = page - 3 + idx;
+      <Gallery
+        photos={photos}
+        selectedIndex={selectedIndex}
+        setSelectedIndex={setSelectedIndex}
+      />
 
-          return (
-            <button
-              key={idx}
-              onClick={() => handlePageClick(pageNo)}
-              className={`px-3 py-1 rounded-full cursor-pointer h-10 w-10 border border-gray-500 ${pageNo === page
-                ? "bg-blue-800 text-md text-center font-extrabold -translate-y-2 text-white"
-                : "bg-gray-200 text-sm dark:bg-gray-600 text-gray-800 dark:text-white font-bold font-mono  backdrop-blur-2xl hover:scale-105 hover:-translate-y-1 transition-all active:scale-95"
-                }`}
-            >
-              {pageNo}
-            </button>
-          );
-        })}
-      </div>
+      {/* Pagination hidden in fullscreen */}
+      {selectedIndex === null && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-white/80 dark:bg-gray-700/50 rounded-full py-3 px-4 shadow-lg z-50 backdrop-blur-2xl">
+          {Array.from({ length: Math.min(7, totalPages) }).map((_, idx) => {
+            let pageNo = 1;
+            if (page <= 4) pageNo = idx + 1;
+            else if (page >= totalPages - 3) pageNo = totalPages - 6 + idx;
+            else pageNo = page - 3 + idx;
+
+            return (
+              <button
+                key={idx}
+                onClick={() => handlePageClick(pageNo)}
+                className={`px-3 py-1 rounded-full cursor-pointer h-10 w-10 border border-gray-500 ${pageNo === page
+                    ? "bg-blue-800 text-md text-center font-extrabold -translate-y-2 text-white"
+                    : "bg-gray-200 text-sm dark:bg-gray-600 text-gray-800 dark:text-white font-bold font-mono  backdrop-blur-2xl hover:scale-105 hover:-translate-y-1 transition-all active:scale-95"
+                  }`}
+              >
+                {pageNo}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
